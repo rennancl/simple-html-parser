@@ -1,4 +1,5 @@
 import json
+import pandas as pd
 from bs4 import BeautifulSoup
 
 def norm_string(text):
@@ -15,6 +16,22 @@ def open_and_load(file):
     soup = BeautifulSoup(htmltxt, 'lxml')
     return soup
 
+def parse_about(soup):
+    repercution = soup.findAll("div", {"id": "repercussao"})
+    if repercution:
+        return norm_string(str(repercution[0].contents[1].contents[5]).replace("</p>", "").replace("<p>", ""))
+
+    return ""
+
+def parse_id(soup):
+    divs = soup.find_all('div', attrs={'style': 'text-align: center !important;'})
+    try:
+        id = str(divs[0])[80:125]
+        id = id.split("/")[-1]
+        return id
+    except:
+        return ""
+
 def parse(soup):
     att = soup.findAll("div", {"class": "control-group"})
     parsed = {}
@@ -29,17 +46,17 @@ def parse(soup):
 
     att = soup.findAll("h1", {"style": "position: relative;"})[0].contents[0]
     parsed["name"] = norm_string(str(att)[1:])
+    parsed["about"] = parse_about(soup)
+    parsed["id"] = parse_id(soup)
     return parsed
 
-for i in range(1, 500):
-    print(i)
+groups = []
+for i in range(1, 20):
     group = './0/{}.html'.format(i)
     soup = open_and_load(group)
     parsed = parse(soup)
     print_json(parsed)
-    break
-
-# soup = open_and_load('./0/400.html')
-# parsed = parse(soup)
-# print_json(parsed)
-
+    groups.append(parsed)
+    # break
+# df = pd.DataFrame(groups)
+# print(df)
