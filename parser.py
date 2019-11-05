@@ -32,6 +32,33 @@ def parse_id(soup):
     except:
         return ""
 
+def translate_keys(dictionary):
+    translations = {"ano de formação": "year",
+                    "bairro": "neighborhood",
+                    "caixa postal": "mailbox",
+                    "cep": "zipcode",
+                    "complemento": "complement",
+                    "data da situação": "date",
+                    "data do último envio": "updatedate",
+                    "instituição do grupo": "institution",
+                    "localidade": "locality",
+                    "logradouro": "street",
+                    "líder(es) do grupo": "leader",
+                    "número": "number",
+                    "situação do grupo": "situation",
+                    "sub área": "subarea",
+                    "telefone": "phone",
+                    "uf": "state",
+                    "unidade": "unit",
+                    "área predominante": "area"
+    }
+    for key in translations:
+        try:
+            dictionary[translations[key]] = dictionary.pop(key)
+        except:
+            continue
+    return dictionary
+
 def parse(soup):
     att = soup.findAll("div", {"class": "control-group"})
     parsed = {}
@@ -48,7 +75,7 @@ def parse(soup):
     parsed["name"] = norm_string(str(att)[1:])
     parsed["about"] = parse_about(soup)
     parsed["id"] = parse_id(soup)
-    return parsed
+    return translate_keys(parsed)
 
 groups = []
 for i in range(1, 20):
