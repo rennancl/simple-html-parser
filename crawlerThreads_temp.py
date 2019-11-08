@@ -19,7 +19,7 @@ def get_url_by_html(filename):
     divs = soup.find_all('div', attrs={'style': 'text-align: center !important;'})
     try:
         url = str(divs[0])[80:125]
-#        print(url)
+        print(url)
         return soup, url
     except:
         return soup, ""
@@ -60,8 +60,6 @@ def craw_function(dir):
     options.add_argument('window-size=1920x1080')
     driver = webdriver.Chrome("/home/rennancordeiro/Documents/latin/chromedriver_linux64/chromedriver", chrome_options=options)
     for filename in glob.glob("./" + str(dir) + "/*"):
-        if 'p' in filename:
-            continue
         soup, url = get_url_by_html(filename)
         if not url:
             # in case of couldn't find url in page, goes to next page
@@ -70,11 +68,12 @@ def craw_function(dir):
         driver.get("http://www." + url)
         # wait till page can be on
         # wait_seconds(1)
-#        print(filename)
+
+        print(filename)
 
         for j in [2, 3]:
             researchers = get_researchers_table(soup, j)
-#            print(researchers)            
+            print(researchers)            
             for i, record in enumerate(researchers):
                 try:
                     divs_researcher, content = get_div_researcher(i, driver)
@@ -90,7 +89,7 @@ def craw_function(dir):
                 records.append(record)
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
-#                print("Sucess")
+                print("Sucess")
                 
                 if researcher not in seen:
                     seen.append(researcher)
@@ -105,19 +104,18 @@ def craw_threads():
     threads_log = open("threads_log.txt", "w")
     
     
-    for dir in [0, 8, 10, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]:
+    for dir in range(10):
         t = Thread(target=craw_function,args=(dir,))
         threads.append(t)
         print("Main    : thread for ", dir, "started")
         t.start()
 
     for index, thread in enumerate(threads):
-        threads_log.write("Main    : before joining thread:\n" + str(index))
+        threads_log.write("Main    : before joining thread:" + str(index))
         print("Main    : before joining thread %d.", index)
         
         thread.join()
         
-        threads_log.write("Main    : thread done:\n" + str(index))
+        threads_log.write("Main    : thread done:" + str(index))
         print("Main    : thread %d done", index)
 
-craw_threads()
