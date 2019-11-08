@@ -84,9 +84,18 @@ def parse(soup):
     
     return parsed
 
+
+def list_to_json(lis):
+    doc = {}
+    doc["name"] = lis[0]
+    doc["formation"] = lis[1]
+    doc["date"] = lis[2]
+    doc["id"] = lis[3]
+    doc["lattes_id"] = doc["id"]
+    return doc
+
 groups = []
 path = sys.argv[1]
-
 print(path)
 
 for i in range(1, 20):
@@ -98,6 +107,9 @@ for i in range(1, 20):
     print_json(parsed)
     groups.append(parsed)
 
+
+
+
 df = pd.DataFrame(groups)
 print(df)
 print(path)
@@ -105,17 +117,16 @@ print(path)
 people = pd.read_csv(path +'/1/researcher_groups.csv', header=None, names=["name","grad","date","to_drop","id_people","id"])
 people = people.dropna()
 people["id"] = people["id"].transform(lambda x: x.split("/")[-1]) 
-print(people)
-
 people = people.groupby('id')[["name", "grad", "date", "id_people"]].apply(lambda x: x.values.tolist()).to_frame()
-people = people.reset_index() 
+people = people.reset_index()
 people.columns = ["id", "peop"]
-print(people)
-
+people["peop"] = list(map(lambda x: [list_to_json(i) for i in x], people["peop"]))
 df = df.merge(people, on="id")
 df["people"] = df["peop"]
 df = df.drop(columns=['peop'])
-
 jsons = json.loads(df.to_json(orient='records'))
-print(jsons[0])
+
+for doc in jsons:
+    print_json(doc)
+# print(jsons[0])
 
