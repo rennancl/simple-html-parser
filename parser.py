@@ -1,4 +1,5 @@
 import json
+import sys
 import pandas as pd
 from bs4 import BeautifulSoup
 
@@ -36,7 +37,7 @@ def translate_keys(dictionary):
     translations = {"ano de formação": "year",
                     "bairro": "neighborhood",
                     "caixa postal": "mailbox",
-                    "cep": "zipcode",
+                    "cep": "postcode",
                     "complemento": "complement",
                     "data da situação": "date",
                     "data do último envio": "updatedate",
@@ -75,15 +76,24 @@ def parse(soup):
     parsed["name"] = norm_string(str(att)[1:])
     parsed["about"] = parse_about(soup)
     parsed["id"] = parse_id(soup)
-    return translate_keys(parsed)
+    parsed = translate_keys(parsed)
+
+    parsed["adress"] = [] 
+    for key in ["neighborhood", "latitude", "longitude", "postcode", "street", "state", "locality", "number", "complement"]:
+        parsed["adress"].append(parsed.pop(key))
+    return parsed
 
 groups = []
+path = sys.argv[1]
+
+print(path)
+
 for i in range(1, 20):
-    group = './0/{}.html'.format(i)
+    group = path +'/0/{}.html'.format(i)
     soup = open_and_load(group)
     parsed = parse(soup)
     print_json(parsed)
     groups.append(parsed)
-    # break
+
 # df = pd.DataFrame(groups)
 # print(df)
