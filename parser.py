@@ -81,6 +81,7 @@ def parse(soup):
     parsed["adress"] = [] 
     for key in ["neighborhood", "latitude", "longitude", "postcode", "street", "state", "locality", "number", "complement"]:
         parsed["adress"].append(parsed.pop(key))
+    
     return parsed
 
 groups = []
@@ -89,11 +90,22 @@ path = sys.argv[1]
 print(path)
 
 for i in range(1, 20):
-    group = path +'/0/{}.html'.format(i)
+    i+=498
+    group = path +'1/{}.html'.format(i)
     soup = open_and_load(group)
     parsed = parse(soup)
+    parsed["people"] = []
     print_json(parsed)
     groups.append(parsed)
 
-# df = pd.DataFrame(groups)
-# print(df)
+df = pd.DataFrame(groups)
+print(df)
+print(path)
+
+people = pd.read_csv(path +'/1/researcher_groups.csv', header=None, names=["name","grad","date","to_drop","id_people","id"])
+people = people.dropna()
+people["id"] = people["id"].transform(lambda x: x.split("/")[-1]) 
+print(people)
+
+df = df.merge(people, on="id")
+print(df)
