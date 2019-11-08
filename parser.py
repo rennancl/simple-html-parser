@@ -107,5 +107,15 @@ people = people.dropna()
 people["id"] = people["id"].transform(lambda x: x.split("/")[-1]) 
 print(people)
 
+people = people.groupby('id')[["name", "grad", "date", "id_people"]].apply(lambda x: x.values.tolist()).to_frame()
+people = people.reset_index() 
+people.columns = ["id", "peop"]
+print(people)
+
 df = df.merge(people, on="id")
-print(df)
+df["people"] = df["peop"]
+df = df.drop(columns=['peop'])
+
+jsons = json.loads(df.to_json(orient='records'))
+print(jsons[0])
+
