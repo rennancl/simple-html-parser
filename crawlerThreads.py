@@ -19,7 +19,6 @@ def get_url_by_html(filename):
     divs = soup.find_all('div', attrs={'style': 'text-align: center !important;'})
     try:
         url = str(divs[0])[80:125]
-#        print(url)
         return soup, url
     except:
         return soup, ""
@@ -46,11 +45,7 @@ def get_div_researcher(i, driver):
     return divs_researcher, content
 
 def get_researchers_url(divs_researcher):
-    try:
-        researcher = str(divs_researcher[0])[80:126].split("/")[-1]
-        return researcher
-    except:
-        return ""
+    return str(divs_researcher[0])[80:126].split("/")[-1]
 
 def craw_function(dir):
     records = []
@@ -70,19 +65,14 @@ def craw_function(dir):
         driver.get("http://www." + url)
         # wait till page can be on
         # wait_seconds(1)
-#        print(filename)
 
         for j in [2, 3]:
             researchers = get_researchers_table(soup, j)
-#            print(researchers)            
             for i, record in enumerate(researchers):
                 try:
                     divs_researcher, content = get_div_researcher(i, driver)
                     researcher = get_researchers_url(divs_researcher)
                 except:
-                    continue
-                if not researcher:
-                    # in case of couldn't find url in page, goes to next page
                     continue
 
                 record.append(researcher)
@@ -90,8 +80,7 @@ def craw_function(dir):
                 records.append(record)
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
-#                print("Sucess")
-                
+                print(1)
                 if researcher not in seen:
                     seen.append(researcher)
                     with open("./" + str(dir) + "/p_"+ researcher +  ".html", "w") as text_file:
@@ -102,22 +91,21 @@ def craw_function(dir):
 
 def craw_threads():
     threads = list()
-    threads_log = open("threads_log.txt", "w")
+    threads_log = open("threads_log.txt", "a")
     
-    
-    for dir in [0, 8, 10, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]:
+    for dir in [34, 35, 36 , 37, 38 , 39, 40 , 41, 42 , 43, 44, 45, 46, 47, 48, 49, 50]:
         t = Thread(target=craw_function,args=(dir,))
         threads.append(t)
-        print("Main    : thread for ", dir, "started")
         t.start()
-
+        print("Main: thread for ", dir, "started")
+        
     for index, thread in enumerate(threads):
-        threads_log.write("Main    : before joining thread:\n" + str(index))
-        print("Main    : before joining thread %d.", index)
+        threads_log.write("Main: before joining thread:\n" + str(index))
+        print("Main: before joining thread %d.", index)
         
         thread.join()
         
-        threads_log.write("Main    : thread done:\n" + str(index))
-        print("Main    : thread %d done", index)
+        threads_log.write("Main: thread done:\n" + str(index))
+        print("Main: thread %d done", index)
 
 craw_threads()

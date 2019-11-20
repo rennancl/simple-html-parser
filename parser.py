@@ -1,5 +1,6 @@
 import json
 import sys
+import glob, os
 import pandas as pd
 from bs4 import BeautifulSoup
 
@@ -78,12 +79,10 @@ def parse(soup):
     parsed["id"] = parse_id(soup)
     parsed = translate_keys(parsed)
 
-    parsed["adress"] = [] 
+    parsed["adress"] = dict()
     for key in ["neighborhood", "latitude", "longitude", "postcode", "street", "state", "locality", "number", "complement"]:
-        parsed["adress"].append(parsed.pop(key))
-    
+        parsed["adress"][key] = parsed.pop(key) 
     return parsed
-
 
 def list_to_json(lis):
     doc = {}
@@ -94,39 +93,38 @@ def list_to_json(lis):
     doc["lattes_id"] = doc["id"]
     return doc
 
-groups = []
-path = sys.argv[1]
-print(path)
+def get_lattes_id(path):
+    path = path + "/1"
+    os.chdir(path)
+    files = [file for file in glob.glob("*html") if 'p' in file]
+    print(files)
 
-for i in range(1, 20):
-    i+=498
-    group = path +'1/{}.html'.format(i)
-    soup = open_and_load(group)
-    parsed = parse(soup)
-    parsed["people"] = []
-    print_json(parsed)
-    groups.append(parsed)
+def researchers_df(path):
+    columns = ["name","grad","date","to_drop","id_people","id"]
+    people = pd.read_csv(path +'/researcher_groups.csv', header=None, names=columns).dropna()
+    people["id"] = people["id"].transform(lambda x: x.split("/")[-1]) 
+    people = people.groupby('id')[["name", "grad", "date", "id_people"]]
+    people = people.apply(lambda x: x.values.tolist()).to_frame().reset_index()
+    people.columns = ["id", "people"]
+    people["people"] = people["people"].transform(lambda x: [list_to_json(i) for i in x]) 
+    return people
 
+def parse_all(path):
+    path = path + "/1"
+    os.chdir(path)
+    files = [file for file in glob.glob("*html") if 'p' not in file]
+    groups = [parse(open_and_load(file)) for file in files[:10]]
+    df = pd.DataFrame(groups).merge(researchers_df(path), on="id")
+    return df
 
+if __name__== "__main__":
+    try:
+        path = sys.argv[1]
+    except:
+        print("Don't forgot to pass the path as the second argument")
+        sys.exit()
 
-
-df = pd.DataFrame(groups)
-print(df)
-print(path)
-
-people = pd.read_csv(path +'/1/researcher_groups.csv', header=None, names=["name","grad","date","to_drop","id_people","id"])
-people = people.dropna()
-people["id"] = people["id"].transform(lambda x: x.split("/")[-1]) 
-people = people.groupby('id')[["name", "grad", "date", "id_people"]].apply(lambda x: x.values.tolist()).to_frame()
-people = people.reset_index()
-people.columns = ["id", "peop"]
-people["peop"] = list(map(lambda x: [list_to_json(i) for i in x], people["peop"]))
-df = df.merge(people, on="id")
-df["people"] = df["peop"]
-df = df.drop(columns=['peop'])
-jsons = json.loads(df.to_json(orient='records'))
-
-for doc in jsons:
-    print_json(doc)
-# print(jsons[0])
-
+    jsons = json.loads(parse_all(path).to_json(orient='records'))
+    for doc in jsons:
+        print_json(doc)
+    get_lattes_id(path)
