@@ -90,31 +90,37 @@ def list_to_json(lis):
     doc["formation"] = lis[1]
     doc["date"] = lis[2]
     doc["id"] = lis[3]
-    doc["lattes_id"] = doc["id"]
+    doc["lattes_id"] = lis[4]
     return doc
 
-def get_lattes_id(path):
-    path = path + "/1"
-    os.chdir(path)
+def get_lattes_id():
     files = [file for file in glob.glob("*html") if 'p' in file]
-    print(files)
+    lis = []
+    for file in files:
+        try:
+            att = open_and_load(file).findAll("div", {"id": "indicadoresProducao"})
+            id_ = str(att[0].contents[5].contents[3].contents[0])[95:105]
+            lis.append({"id_lattes": id_, "id_people":int(file.split("_")[1].split(".")[0])})
+        except:
+            continue
+    return pd.DataFrame(lis)
 
-def researchers_df(path):
+def researchers_df():
+    df_ids = get_lattes_id()
     columns = ["name","grad","date","to_drop","id_people","id"]
-    people = pd.read_csv(path +'/researcher_groups.csv', header=None, names=columns).dropna()
+    people = pd.read_csv('researcher_groups.csv', header=None, names=columns).dropna()
+    people = people.merge(df_ids, on="id_people")
     people["id"] = people["id"].transform(lambda x: x.split("/")[-1]) 
-    people = people.groupby('id')[["name", "grad", "date", "id_people"]]
+    people = people.groupby('id')[["name", "grad", "date", "id_people", "id_lattes"]]
     people = people.apply(lambda x: x.values.tolist()).to_frame().reset_index()
     people.columns = ["id", "people"]
     people["people"] = people["people"].transform(lambda x: [list_to_json(i) for i in x]) 
     return people
 
-def parse_all(path):
-    path = path + "/1"
-    os.chdir(path)
+def parse_all():
     files = [file for file in glob.glob("*html") if 'p' not in file]
     groups = [parse(open_and_load(file)) for file in files[:10]]
-    df = pd.DataFrame(groups).merge(researchers_df(path), on="id")
+    df = pd.DataFrame(groups).merge(researchers_df(), on="id")
     return df
 
 if __name__== "__main__":
@@ -124,7 +130,9 @@ if __name__== "__main__":
         print("Don't forgot to pass the path as the second argument")
         sys.exit()
 
-    jsons = json.loads(parse_all(path).to_json(orient='records'))
+    path = path + "/1"
+    os.chdir(path)
+
+    jsons = json.loads(parse_all().to_json(orient='records'))
     for doc in jsons:
         print_json(doc)
-    get_lattes_id(path)
