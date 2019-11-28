@@ -80,7 +80,6 @@ def craw_function(dir):
                 records.append(record)
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
-                print(1)
                 if researcher not in seen:
                     seen.append(researcher)
                     with open("./" + str(dir) + "/p_"+ researcher +  ".html", "w") as text_file:
@@ -93,7 +92,7 @@ def craw_threads():
     threads = list()
     threads_log = open("threads_log.txt", "a")
     
-    for dir in [34, 35, 36 , 37, 38 , 39, 40 , 41, 42 , 43, 44, 45, 46, 47, 48, 49, 50]:
+    for dir in [51, 52, 53 , 54, 55, 56, 57 , 58, 59 , 60, 61, 62, 63, 64, 65]:
         t = Thread(target=craw_function,args=(dir,))
         threads.append(t)
         t.start()
