@@ -88,7 +88,11 @@ def parse(soup):
     parsed["doc_type"] = "institution"
     parsed["adress"] = dict()
     for key in ["neighborhood", "latitude", "longitude", "postcode", "street", "state", "locality", "number", "complement"]:
-        parsed["adress"][key] = parsed.pop(key) 
+        parsed["adress"][key] = parsed.pop(key)
+
+    institution = parsed["institution"]
+    parsed["institution"] = {"name": "", "id": ""}
+    parsed["institution"]["name"] = institution 
     return parsed
 
 def list_to_json(lis):
@@ -127,7 +131,7 @@ def researchers_df():
 def parse_all():
     files = [file for file in glob.glob("*html") if 'p' not in file]
     # must change this 10 in the files list to include all files it encountered
-    groups = [open_and_load(file) for file in files[:10]]
+    groups = [open_and_load(file) for file in files]
     groups_ = []
     # passing the errors in this general way is not a good way to handle this, buts its the fastest way to implement
     # and i need it now...
@@ -154,6 +158,10 @@ if __name__== "__main__":
 
     # should add an loop here to iterate throug all directories i want
     # (but for now ill use 1 for testing purpose) 
+
+    # UPDATE: added, but need to include dir 0 and dir bigger than 50
+
+
     for i in range(1, 51):
         os.chdir(path + "/" + str(i))
 

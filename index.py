@@ -8,7 +8,9 @@ import requests
 
 # INPUT REQUIREMENT: Folder with authors and pubs data in JSON format. 
 # Each folder should have multiple files with one instance per line in each file.
-files_dir = 'jsons/groups/'
+
+# must need to add this folder in host16
+files_dir = 'jsons/institutions/'
 files_to_index = [fname for fname in os.listdir(files_dir) if fname.startswith('part-')]
 files = []
 
@@ -19,7 +21,7 @@ def index_data(bulk_data_path, index_url='http://localhost:9200/lattes/'):
 for fname in files_to_index:
         print('Files - Processing file {0}...'.format(fname))
         new_data = []
-        inpath = authors_dir+fname
+        inpath = files_dir+fname
         out_path = 'bulk_data/institutions/'+fname
         if not os.path.isdir(out_path):
             os.mkdir(out_path)
