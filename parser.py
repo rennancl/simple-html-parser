@@ -70,16 +70,20 @@ def parse(soup):
             parsed[norm_string(at.contents[0].contents[0])] = norm_string(at.contents[2].contents[0])
         except:
             continue
-
-    parsed["sub área"] = parsed.get("área predominante", "").split(";")[1][1:]
-
-    parsed["área predominante"] =  parsed.get("área predominante", "").split(";")[0]
-
+    
+    parsed["id"] = parse_id(soup)
+    parsed["uuid"] = str(uuid.uuid4())
+    
+    try:
+        parsed["sub área"] = parsed.get("área predominante", "").split(";")[1][1:]
+        parsed["área predominante"] =  parsed.get("área predominante", "").split(";")[0]
+    except:
+        parsed["sub área"] = ""
+        parsed["área predominante"] = ""
+    
     att = soup.findAll("h1", {"style": "position: relative;"})[0].contents[0]
     parsed["name"] = norm_string(str(att)[1:])
     parsed["about"] = parse_about(soup)
-    parsed["id"] = parse_id(soup)
-    parsed["uuid"] = str(uuid.uuid4())
     parsed = translate_keys(parsed)
     parsed["doc_type"] = "institution"
     parsed["adress"] = dict()
