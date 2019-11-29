@@ -115,7 +115,7 @@ def get_lattes_id():
 def researchers_df():
     df_ids = get_lattes_id()
     columns = ["name","grad","date","to_drop","id_people","id"]
-    people = pd.read_csv('researcher_groups.csv', header=None, names=columns).dropna()
+    people = pd.read_csv('./researcher_groups.csv', header=None, names=columns).dropna()
     people = people.merge(df_ids, on="id_people")
     people["id"] = people["id"].transform(lambda x: x.split("/")[-1]) 
     people = people.groupby('id')[["name", "grad", "date", "id_people", "id_lattes"]]
@@ -129,6 +129,8 @@ def parse_all():
     # must change this 10 in the files list to include all files it encountered
     groups = [open_and_load(file) for file in files[:10]]
     groups_ = []
+    # passing the errors in this general way is not a good way to handle this, buts its the fastest way to implement
+    # and i need it now...
     for g in groups:
         try:
             groups_.append(parse(g))
@@ -152,7 +154,7 @@ if __name__== "__main__":
 
     # should add an loop here to iterate throug all directories i want
     # (but for now ill use 1 for testing purpose) 
-    for i in range(51):
+    for i in range(1, 51):
         os.chdir(path + "/" + str(i))
 
         jsons = json.loads(parse_all().to_json(orient='records'))
