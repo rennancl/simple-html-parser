@@ -2,6 +2,7 @@ import json
 import sys
 import glob, os
 import pandas as pd
+import uuid
 from bs4 import BeautifulSoup
 
 def norm_string(text):
@@ -77,8 +78,9 @@ def parse(soup):
     parsed["name"] = norm_string(str(att)[1:])
     parsed["about"] = parse_about(soup)
     parsed["id"] = parse_id(soup)
+    parsed["uuid"] = str(uuid.uuid4())
     parsed = translate_keys(parsed)
-
+    parsed["doc_type"] = "institution"
     parsed["adress"] = dict()
     for key in ["neighborhood", "latitude", "longitude", "postcode", "street", "state", "locality", "number", "complement"]:
         parsed["adress"][key] = parsed.pop(key) 
@@ -119,6 +121,7 @@ def researchers_df():
 
 def parse_all():
     files = [file for file in glob.glob("*html") if 'p' not in file]
+    # must change this 10 in the files list to include all files it encountered
     groups = [parse(open_and_load(file)) for file in files[:10]]
     df = pd.DataFrame(groups).merge(researchers_df(), on="id")
     return df
@@ -130,9 +133,21 @@ if __name__== "__main__":
         print("Don't forgot to pass the path as the second argument")
         sys.exit()
 
-    path = path + "/1"
+    path = os.path.abspath(path)    
     os.chdir(path)
+    if not os.path.isdir("./institutions"):
+        os.mkdir("./institutions")
 
-    jsons = json.loads(parse_all().to_json(orient='records'))
-    for doc in jsons:
-        print_json(doc)
+    # should add an loop here to iterate throug all directories i want
+    # (but for now ill use 1 for testing purpose) 
+    for i in range(51):
+        os.chdir(path + "/" + str(i))
+
+        jsons = json.loads(parse_all().to_json(orient='records'))
+
+        os.chdir(path)
+        out_path = "institutions/part-" + str(i) 
+        with open(out_path, 'w') as out:
+                for line in jsons:
+                        out.write(json.dumps(line)+'\n')
+                        # print_json(line)
