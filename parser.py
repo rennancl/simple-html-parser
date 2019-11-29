@@ -127,7 +127,14 @@ def researchers_df():
 def parse_all():
     files = [file for file in glob.glob("*html") if 'p' not in file]
     # must change this 10 in the files list to include all files it encountered
-    groups = [parse(open_and_load(file)) for file in files[:10]]
+    groups = [open_and_load(file) for file in files[:10]]
+    groups_ = []
+    for g in groups:
+        try:
+            groups_.append(parse(g))
+        except:
+            continue
+    groups = groups_ 
     df = pd.DataFrame(groups).merge(researchers_df(), on="id")
     return df
 
