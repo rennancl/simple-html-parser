@@ -92,7 +92,7 @@ def craw_threads():
     threads = list()
     threads_log = open("threads_log.txt", "a")
     
-    for dir in [51, 52, 53 , 54, 55, 56, 57 , 58, 59 , 60, 61, 62, 63, 64, 65]:
+    for dir in [66, 67, 68 , 69, 70, 71, 72 , 73, 74 , 75, 76, 77, 78]:
         t = Thread(target=craw_function,args=(dir,))
         threads.append(t)
         t.start()
